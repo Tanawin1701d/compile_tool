@@ -19,7 +19,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from carolyne.util import is_power_of_two
+
+
+def is_power_of_two(value: int) -> bool: return value > 0 and value & (value - 1) == 0   # False for 0
 
 # --- fixed choices ------------------------------------------------------------
 

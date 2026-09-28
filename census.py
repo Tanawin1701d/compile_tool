@@ -27,9 +27,8 @@ from typing import Dict, List, Sequence, Set, Tuple
 from . import build_program
 from .target import Target, target_named
 
-REPO     = pathlib.Path(__file__).resolve().parents[2]
-PROGRAMS = REPO / "examples" / "compile_tool" / "programs"
-OUT      = REPO / "generated" / "census"
+PROGRAMS = pathlib.Path(__file__).resolve().parent / "programs"
+OUT      = pathlib.Path("generated") / "census"        # relative to the working directory
 
 # objdump -d: "bfc00000:\t3c1c0000 \tlui\tgp,0x0"
 _LINE = re.compile(r"^\s*([0-9a-f]+):\s+([0-9a-f]{8})\s+(\S+)\s*(.*)$")
@@ -44,6 +43,8 @@ CONTROL = {"b", "bal", "beq", "bne", "beqz", "bnez", "blez", "bgtz", "bltz", "bg
 
 def scope_of(target: Target) -> Set[str]:
     """Every mnemonic the description names, lower-cased, plus the aliases."""
+    if not target.can_verify:
+        raise ValueError(f"the census needs the {target.name} ISA description: install carolyne")
     return {uop.name.lower() for uop in target.isa().uops} | ALIASES
 
 

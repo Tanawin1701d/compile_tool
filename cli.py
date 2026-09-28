@@ -88,7 +88,7 @@ def main(argv=None) -> int:
 
     if args.command == "verify":
         if not target.can_verify:
-            raise ValueError(f"target {target.name} has no ISA description to verify against yet")
+            raise ValueError(f"target {target.name} has no ISA description to verify against: install carolyne")
         report = verify_program(read_elf32(args.elf), target.isa(), target.delay_slot_nop)
         print(report.describe())
         if not report.ok:

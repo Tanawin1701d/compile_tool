@@ -16,15 +16,30 @@
 
 from __future__ import annotations
 
+import importlib.util
 import os
 from dataclasses import dataclass, replace
-from typing import Callable, Optional, Tuple
+from typing import TYPE_CHECKING, Callable, Optional, Tuple
 
-from carolyne.isa import IsaBase
-from carolyne.isa.mips import Mips32
-from carolyne.isa.mips.field_match import RESET_PC as MIPS_RESET_PC
-from carolyne.isa.riscv import Rv32im
-from carolyne.isa.riscv.field_match import RESET_PC as RV32_RESET_PC
+if TYPE_CHECKING:
+    from carolyne.isa import IsaBase
+
+# ---- the ISA descriptions: optional -----------------------------------------
+# With carolyne importable, a target verifies against its description and takes
+# the reset vector from it. Without carolyne the tool still builds images, and
+# the reset vectors below are the values the descriptions state.
+HAS_CAROLYNE = importlib.util.find_spec("carolyne") is not None     # installed but broken still raises
+
+if HAS_CAROLYNE:
+    from carolyne.isa.mips import Mips32
+    from carolyne.isa.mips.field_match import RESET_PC as MIPS_RESET_PC
+    from carolyne.isa.riscv import Rv32im
+    from carolyne.isa.riscv.field_match import RESET_PC as RV32_RESET_PC
+else:
+    Mips32        = None
+    Rv32im        = None
+    MIPS_RESET_PC = 0xBFC00000      # fixed by the MIPS architecture
+    RV32_RESET_PC = 0x00000000      # Carolyne's RV32IM default
 
 from .elf32 import EM_MIPS, EM_RISCV
 from .layout import DEFAULT_DMEM_BYTES, DEFAULT_IMEM_BYTES, DMEM_BASE, MachineMem
@@ -45,7 +60,7 @@ class Target:
     discard        : Tuple[str, ...]           # the arch note sections the linker script discards
     elf_machine    : int                       # the e_machine a linked ELF must carry
     reset_pc       : int                       # where the code starts when no machine config decides
-    isa            : Optional[Callable[[], IsaBase]]         # the description verify holds a program to, or None
+    isa            : Optional[Callable[[], "IsaBase"]]       # the description verify holds a program to, or None: carolyne not installed
     delay_slot_nop : Optional[int]             # the word every branch delay slot must hold, or None: the machine executes the slot
 
     def tool(self, what: str) -> str:

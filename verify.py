@@ -24,11 +24,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple
 
-from carolyne.isa import IsaBase
-from carolyne.uarch.common import match_field_bits
-from carolyne.uarch.o3.decode import group_uops_by_level
+if TYPE_CHECKING:
+    from carolyne.isa import IsaBase
 
 from .elf32 import Elf32
 
@@ -113,6 +112,8 @@ def decode_hits(word: int, levels) -> Tuple:
     The conjunction is the mop's rule and the uop_seq's rule together, which
     is the whole encoding side — a template carries no matcher of its own.
     """
+    from carolyne.uarch.common import match_field_bits     # carolyne is optional: imported on use
+
     hits = []
     for matchers, uop in levels[0]:
         if all(match_field_bits(word, field, value)
@@ -128,6 +129,8 @@ def verify_program(elf: Elf32, isa: IsaBase,
     - `delay_slot_nop`: the word that must follow every µop carrying the
       "delay_slot" feature, or None when the machine executes the slot
     """
+    from carolyne.uarch.o3.decode import group_uops_by_level     # carolyne is optional: imported on use
+
     levels   = group_uops_by_level(isa)
     width    = isa.ilen_bytes
     problems = []
